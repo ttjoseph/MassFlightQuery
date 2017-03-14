@@ -149,7 +149,7 @@ So in the postprocessing you can examine some subset of the results without reru
                     if dist < args.drive_instead:
                         drive_cost = args.drive_cpm * dist * 2
                         total_cost[destination] += drive_cost
-                        print >>sys.stderr, '%s to %s: Drive %.0f miles total ($%.2f)' % (origin, destination, dist*2, drive_cost)
+                        print '%s to %s: Drive %.0f miles total ($%.2f)' % (origin, destination, dist*2, drive_cost)
                         continue
                 
                 # If we don't have flight pricing data and we aren't driving, then panic a bit, but don't give up
