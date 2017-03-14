@@ -62,6 +62,8 @@ So in the postprocessing you can examine some subset of the results without reru
     ap.add_argument('--drive-instead', type=float, default=500, help='One-way distance (in miles) below which people would prefer to drive')
     ap.add_argument('--drive-cpm', type=float, default=0.19, help='Cost per mile to drive')
     ap.add_argument('--result-files', type=str, nargs='+', help='Result JSON files to parse')
+    ap.add_argument('--dry-run', action='store_true', help='Don\'t actually do the query')
+    ap.set_defaults(dry_run=False)
     args = ap.parse_args()
 
     airports = None
@@ -84,25 +86,29 @@ So in the postprocessing you can examine some subset of the results without reru
         # Query all origin/destination pairs
         for origin in origins:
             for destination in destinations:
-                origin = origin.upper()
-                destination = destination.upper()
+                origin = proj4.airport_to_city_code(origin).upper()
+                destination = proj4.airport_to_city_code(destination).upper()
 
                 # No need to query for trips that go nowhere
                 if proj4.is_same_place(origin, destination): continue 
 
                 if args.drive_instead is not None:
-                    dist = proj4.distance_in_miles(airports[origin], airports[destination])
+                    dist = proj4.distance_in_miles(airports[proj4.city_code_to_some_airport(origin)],
+                        airports[proj4.city_code_to_some_airport(destination)])
                     if dist < args.drive_instead:
                         drive_cost = args.drive_cpm * dist * 2
                         print >>sys.stderr, '%s %s: Drive %.0f miles total ($%.2f)' % (origin, destination, dist*2, drive_cost)
                         continue
 
                 req_data = build_flight_query_request(origin, destination, args.depart_date, args.return_date)
-                r = requests.post(QPX_API_URL, json=req_data)
-                result_json = r.json()
-                print >>sys.stderr, '%s to %s %s %s: %s' % \
-                    (origin, destination, args.depart_date, args.return_date, result_json['trips']['tripOption'][0]['saleTotal'])
-                open('%s-%s_%s_%s.json' % (origin, destination, args.depart_date, args.return_date), 'w').write(r.text)
+                if args.dry_run is False:
+                    r = requests.post(QPX_API_URL, json=req_data)
+                    result_json = r.json()
+                    print >>sys.stderr, '%s to %s %s %s: %s' % \
+                        (origin, destination, args.depart_date, args.return_date, result_json['trips']['tripOption'][0]['saleTotal'])
+                    open('%s-%s_%s_%s.json' % (origin, destination, args.depart_date, args.return_date), 'w').write(r.text)
+                else:
+                    print >>sys.stderr, '%s %s: Did not query because this is a dry run' % (origin, destination)
 
     elif args.command == 'parse_results':
         # Did the user specify any results to parse?
@@ -145,7 +151,8 @@ So in the postprocessing you can examine some subset of the results without reru
 
                 # Calculate cost to drive if applicable
                 if args.drive_instead is not None:
-                    dist = proj4.distance_in_miles(airports[origin], airports[destination])
+                    dist = proj4.distance_in_miles(airports[proj4.city_code_to_some_airport(origin)],
+                        airports[proj4.city_code_to_some_airport(destination)])
                     if dist < args.drive_instead:
                         drive_cost = args.drive_cpm * dist * 2
                         total_cost[destination] += drive_cost

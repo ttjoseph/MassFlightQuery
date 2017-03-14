@@ -33,6 +33,9 @@ for (city, airports) in AIRPORTS_IN_CITY.iteritems():
 def airport_to_city_code(loc):
     return CITY_OF_AIRPORT[loc] if loc in CITY_OF_AIRPORT else loc
 
+def city_code_to_some_airport(loc):
+    return AIRPORTS_IN_CITY[loc][0] if loc in AIRPORTS_IN_CITY else loc
+
 def is_same_place(loc1, loc2):
     """Returns True if loc1 is the same place as loc2, taking into account city codes.
     
