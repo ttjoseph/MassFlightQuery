@@ -1,5 +1,8 @@
-# Transliteration of a couple functions from PROJ.4 to JavaScript.
+# Transliteration of a couple functions from PROJ.4 to Python.
 # I have absolutely no idea how any of this works.
+# But you can find the original project at https://github.com/OSGeo/proj.4/
+# PROJ.4 is distributed under the MIT license currently, but PROJ4.3 and earlier
+# was in the public domain as a US Government work.
 from math import atan, tan, sin, cos, acos, floor, ceil
 import csv
 
