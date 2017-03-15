@@ -174,7 +174,8 @@ So in the postprocessing you can examine some subset of the results without reru
                 print '%s to %s: $%.2f%s' % (origin, destination, sale_total, suffix)
           
         print ''
-        for destination in sorted(total_cost.keys()):
+        # Print results, sorted, with costliest first
+        for destination in sorted(total_cost.keys(), key=lambda location: total_cost[location], reverse=True):
             print '%s: $%.2f' % (destination, total_cost[destination])
                 
 
